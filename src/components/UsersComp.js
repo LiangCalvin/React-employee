@@ -12,6 +12,7 @@ import Paper from "@mui/material/Paper";
 import { useState, useEffect } from "react";
 import Avatar from "@mui/material/Avatar";
 import Link from "@mui/material/Link";
+import ButtonGroup from "@mui/material/ButtonGroup";
 
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -22,13 +23,52 @@ import TableRow from "@mui/material/TableRow";
 
 export default function UsersComp() {
   const [items, setItems] = useState([]);
-  useEffect(() => {
+
+  const UserGet = () => {
     fetch("https://www.melivecode.com/api/users")
       .then((res) => res.json())
       .then((result) => {
         setItems(result);
       });
+  };
+
+  useEffect(() => {
+    UserGet();
   }, []);
+
+  const handleEdit = (userID) => {
+    window.location = '/update/'+userID
+  }
+
+  const handleDelete = (userID) => {
+    if (window.confirm("Are you sure you want to delete this item?")) {
+      const myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+
+      const raw = JSON.stringify({
+        id: userID,
+      });
+
+    const requestOptions = {
+      method: "DELETE",
+      headers: myHeaders,
+      body: raw,
+      redirect: "follow",
+    };
+  
+    fetch("https://www.melivecode.com/api/users/delete", requestOptions)
+      .then((response) => response.json())
+      .then((result) => {
+        alert(result["message"]);
+        if (result["status"] === "ok") {
+          UserGet();
+        }
+        console.log(result);
+      })
+      .catch((error) => console.error(error));
+    }
+  };
+
   return (
     <React.Fragment>
       <CssBaseline />
@@ -75,6 +115,22 @@ export default function UsersComp() {
                     <TableCell align="right">{row.fname}</TableCell>
                     <TableCell align="right">{row.lname}</TableCell>
                     <TableCell align="right">{row.username}</TableCell>
+                    <TableCell align="right">
+                      <ButtonGroup
+                        variant="outlined"
+                        aria-label="Basic button group"
+                      >
+                        <Button
+                          onClick={() => handleEdit(row.id)}
+                        >Edit</Button>
+                        <Button
+                          onClick={() => handleDelete(row.id)}
+                          style={{ color: "#bb1712" }}
+                        >
+                          Delete
+                        </Button>
+                      </ButtonGroup>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
